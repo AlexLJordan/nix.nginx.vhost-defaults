@@ -68,7 +68,15 @@ in {
                   extraConfig = let
                     agentRules = lib.concatStringsSep "|" (map (lib.strings.escape regexEscapes) config.blockAgents.agents);
                   in ''
+                    # HACK: if is evil | https://ezecodes.wordpress.com/2016/06/30/multiple-if-conditions-in-nginx
+                    set $BOT_and_not_ROBOTS "";
                     if ($http_user_agent ~* "(${agentRules})") {
+                      set $BOT_and_not_ROBOTS B;
+                    }
+                    if ($uri !~ "/robots.txt") {
+                      set $BOT_and_not_ROBOTS "''${BOT_and_not_ROBOTS}NR";
+                    }
+                    if ($BOT_and_not_ROBOTS = BNR) {
                       ${config.blockAgents.method};
                     }
                   '';
@@ -85,4 +93,3 @@ in {
   config = {};
   meta = {};
 }
-
